@@ -9,8 +9,11 @@ import {
   ListGroup,
   InputGroup,
   FormControl,
+  Tabs,
+  Tab,
 } from "react-bootstrap";
 import "bootstrap/dist/css/bootstrap.min.css";
+import { Editor } from "@tinymce/tinymce-react";
 
 function App() {
   const [email, setEmail] = useState("");
@@ -24,16 +27,26 @@ function App() {
   const [templates, setTemplates] = useState([
     {
       id: "welcome",
+      category: "Default",
       content: `<h1>Welcome to our service!</h1><p>Thank you for joining us.</p>`,
     },
     {
       id: "promotion",
+      category: "Promotion",
       content: `<h1>Special Promotion!</h1><p>Check out our latest offers.</p>`,
     },
   ]);
   const [selectedTemplate, setSelectedTemplate] = useState(null);
   const [newTemplateName, setNewTemplateName] = useState("");
   const [newTemplateContent, setNewTemplateContent] = useState("");
+  const [newTemplateCategory, setNewTemplateCategory] = useState("");
+  const [editorContent, setEditorContent] = useState("");
+  const [templateCategories, setTemplateCategories] = useState([
+    "Default",
+    "Promotion",
+    "News",
+    "Updates",
+  ]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -76,6 +89,8 @@ function App() {
     setSelectedTemplate(templateToEdit);
     setNewTemplateName(templateToEdit.id);
     setNewTemplateContent(templateToEdit.content);
+    setNewTemplateCategory(templateToEdit.category);
+    setEditorContent(templateToEdit.content);
     setShowEditModal(true);
   };
 
@@ -84,26 +99,47 @@ function App() {
   };
 
   const handleAddTemplate = () => {
+    if (!newTemplateName || !newTemplateContent || !newTemplateCategory) return;
+
+    if (templates.find((t) => t.id === newTemplateName)) {
+      alert("Template name already exists");
+      return;
+    }
+
     setTemplates([
       ...templates,
-      { id: newTemplateName, content: newTemplateContent },
+      {
+        id: newTemplateName,
+        content: newTemplateContent,
+        category: newTemplateCategory,
+      },
     ]);
     setNewTemplateName("");
     setNewTemplateContent("");
+    setNewTemplateCategory("");
     setShowTemplateModal(false);
   };
 
   const handleEditTemplate = () => {
+    if (!newTemplateName || !newTemplateContent || !newTemplateCategory) return;
+
     setTemplates(
       templates.map((t) =>
         t.id === selectedTemplate.id
-          ? { ...t, id: newTemplateName, content: newTemplateContent }
+          ? {
+              ...t,
+              id: newTemplateName,
+              content: editorContent,
+              category: newTemplateCategory,
+            }
           : t
       )
     );
     setSelectedTemplate(null);
     setNewTemplateName("");
     setNewTemplateContent("");
+    setNewTemplateCategory("");
+    setEditorContent("");
     setShowEditModal(false);
   };
 
@@ -204,17 +240,43 @@ function App() {
           <Modal.Title>Manage Templates</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <ListGroup>
-            {templates.map((t) => (
-              <ListGroup.Item
-                key={t.id}
-                action
-                onClick={() => handleShowEditModal(t.id)}
-              >
-                {t.id.charAt(0).toUpperCase() + t.id.slice(1)}
-              </ListGroup.Item>
-            ))}
-          </ListGroup>
+          <Tabs defaultActiveKey="all" id="template-tabs" className="mb-3">
+            <Tab eventKey="all" title="All Templates">
+              <ListGroup>
+                {templates.map((t) => (
+                  <ListGroup.Item
+                    key={t.id}
+                    action
+                    onClick={() => handleShowEditModal(t.id)}
+                  >
+                    {t.id.charAt(0).toUpperCase() + t.id.slice(1)}
+                  </ListGroup.Item>
+                ))}
+              </ListGroup>
+            </Tab>
+            <Tab eventKey="categories" title="Categories">
+              <ListGroup>
+                {templateCategories.map((category) => (
+                  <ListGroup.Item key={category}>
+                    <strong>{category}</strong>
+                    <ListGroup>
+                      {templates
+                        .filter((t) => t.category === category)
+                        .map((t) => (
+                          <ListGroup.Item
+                            key={t.id}
+                            action
+                            onClick={() => handleShowEditModal(t.id)}
+                          >
+                            {t.id.charAt(0).toUpperCase() + t.id.slice(1)}
+                          </ListGroup.Item>
+                        ))}
+                    </ListGroup>
+                  </ListGroup.Item>
+                ))}
+              </ListGroup>
+            </Tab>
+          </Tabs>
           <Form.Group className="mt-3">
             <Form.Label>New Template Name</Form.Label>
             <Form.Control
@@ -225,13 +287,33 @@ function App() {
             />
           </Form.Group>
           <Form.Group className="mt-3">
-            <Form.Label>New Template Content</Form.Label>
+            <Form.Label>New Template Category</Form.Label>
             <Form.Control
-              as="textarea"
-              rows={3}
-              placeholder="Enter template content"
-              value={newTemplateContent}
-              onChange={(e) => setNewTemplateContent(e.target.value)}
+              as="select"
+              value={newTemplateCategory}
+              onChange={(e) => setNewTemplateCategory(e.target.value)}
+            >
+              <option value="">Select Category</option>
+              {templateCategories.map((cat) => (
+                <option key={cat} value={cat}>
+                  {cat}
+                </option>
+              ))}
+            </Form.Control>
+          </Form.Group>
+          <Form.Group className="mt-3">
+            <Form.Label>New Template Content</Form.Label>
+            <Editor
+              apiKey="bn1csqrawrknlxp3a5fh7v9b7oufk8nhl69mh5iix0ibtjsx"
+              value={editorContent}
+              init={{
+                height: 300,
+                menubar: false,
+                plugins: "link image code",
+                toolbar:
+                  "undo redo | bold italic | alignleft aligncenter alignright alignjustify | outdent indent | removeformat | help",
+              }}
+              onEditorChange={(content) => setEditorContent(content)}
             />
           </Form.Group>
           <Button
@@ -263,12 +345,32 @@ function App() {
             />
           </Form.Group>
           <Form.Group className="mt-3">
-            <Form.Label>Template Content</Form.Label>
+            <Form.Label>Template Category</Form.Label>
             <Form.Control
-              as="textarea"
-              rows={3}
-              value={newTemplateContent}
-              onChange={(e) => setNewTemplateContent(e.target.value)}
+              as="select"
+              value={newTemplateCategory}
+              onChange={(e) => setNewTemplateCategory(e.target.value)}
+            >
+              {templateCategories.map((cat) => (
+                <option key={cat} value={cat}>
+                  {cat}
+                </option>
+              ))}
+            </Form.Control>
+          </Form.Group>
+          <Form.Group className="mt-3">
+            <Form.Label>Template Content</Form.Label>
+            <Editor
+              apiKey="bn1csqrawrknlxp3a5fh7v9b7oufk8nhl69mh5iix0ibtjsx"
+              value={editorContent}
+              init={{
+                height: 300,
+                menubar: false,
+                plugins: "link image code",
+                toolbar:
+                  "undo redo | bold italic | alignleft aligncenter alignright alignjustify | outdent indent | removeformat | help",
+              }}
+              onEditorChange={(content) => setEditorContent(content)}
             />
           </Form.Group>
         </Modal.Body>

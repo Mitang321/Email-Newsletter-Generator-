@@ -1,0 +1,36 @@
+.App {
+  text-align: center;
+  padding: 20px;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+label {
+  margin: 10px 0;
+}
+
+input,
+textarea {
+  width: 300px;
+  margin-bottom: 20px;
+}
+
+button {
+  padding: 10px 20px;
+}
+
+.error {
+  color: red;
+  font-size: 0.875em;
+  margin: 0;
+}
+
+.response {
+  color: green;
+  font-size: 0.875em;
+  margin: 0;
+}

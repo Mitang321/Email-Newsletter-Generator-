@@ -7,10 +7,6 @@ import {
   Alert,
   Modal,
   ListGroup,
-  InputGroup,
-  FormControl,
-  Tabs,
-  Tab,
 } from "react-bootstrap";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { Editor } from "@tinymce/tinymce-react";
@@ -47,6 +43,37 @@ function App() {
     "News",
     "Updates",
   ]);
+
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isSignUp, setIsSignUp] = useState(false);
+  const [loginEmail, setLoginEmail] = useState("");
+  const [loginPassword, setLoginPassword] = useState("");
+  const [signupEmail, setSignupEmail] = useState("");
+  const [signupPassword, setSignupPassword] = useState("");
+
+  const handleLogin = (e) => {
+    e.preventDefault();
+    if (loginEmail === "admin@gmail.com" && loginPassword === "admin123") {
+      setIsLoggedIn(true);
+    } else {
+      setError("Invalid email or password");
+    }
+  };
+
+  const handleSignUp = (e) => {
+    e.preventDefault();
+    setIsLoggedIn(true);
+  };
+
+  const handleLogout = () => {
+    setIsLoggedIn(false);
+    setLoginEmail("");
+    setLoginPassword("");
+  };
+
+  const toggleSignUp = () => {
+    setIsSignUp(!isSignUp);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -99,7 +126,7 @@ function App() {
   };
 
   const handleAddTemplate = () => {
-    if (!newTemplateName || !newTemplateContent || !newTemplateCategory) return;
+    if (!newTemplateName || !editorContent || !newTemplateCategory) return;
 
     if (templates.find((t) => t.id === newTemplateName)) {
       alert("Template name already exists");
@@ -110,18 +137,19 @@ function App() {
       ...templates,
       {
         id: newTemplateName,
-        content: newTemplateContent,
+        content: editorContent,
         category: newTemplateCategory,
       },
     ]);
     setNewTemplateName("");
     setNewTemplateContent("");
     setNewTemplateCategory("");
+    setEditorContent("");
     setShowTemplateModal(false);
   };
 
   const handleEditTemplate = () => {
-    if (!newTemplateName || !newTemplateContent || !newTemplateCategory) return;
+    if (!newTemplateName || !editorContent || !newTemplateCategory) return;
 
     setTemplates(
       templates.map((t) =>
@@ -153,74 +181,130 @@ function App() {
 
   return (
     <Container>
-      <h1 className="my-4">Email Newsletter Generator</h1>
-      <Form onSubmit={handleSubmit}>
-        <Form.Group controlId="email">
-          <Form.Label>Email Address</Form.Label>
-          <Form.Control
-            type="email"
-            placeholder="Enter recipient email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-        </Form.Group>
-        <Form.Group controlId="subject" className="mt-3">
-          <Form.Label>Subject</Form.Label>
-          <Form.Control
-            type="text"
-            placeholder="Enter email subject"
-            value={subject}
-            onChange={(e) => setSubject(e.target.value)}
-            required
-          />
-        </Form.Group>
-        <Form.Group controlId="template" className="mt-3">
-          <Form.Label>Template</Form.Label>
-          <Form.Control
-            as="select"
-            value={template}
-            onChange={(e) => setTemplate(e.target.value)}
-            required
-          >
-            {templates.map((t) => (
-              <option key={t.id} value={t.id}>
-                {t.id.charAt(0).toUpperCase() + t.id.slice(1)}
-              </option>
-            ))}
-          </Form.Control>
-        </Form.Group>
-        <Button
-          variant="primary"
-          type="submit"
-          className="mt-3"
-          onClick={handlePreview}
-        >
-          Preview and Send
-        </Button>
-        <Button
-          variant="secondary"
-          className="mt-3 ms-2"
-          onClick={handleShowTemplateModal}
-        >
-          Manage Templates
-        </Button>
-      </Form>
+      {!isLoggedIn ? (
+        <div>
+          <h1 className="my-4">{isSignUp ? "Sign Up" : "Login"}</h1>
+          <Form onSubmit={isSignUp ? handleSignUp : handleLogin}>
+            <Form.Group controlId="email">
+              <Form.Label>Email Address</Form.Label>
+              <Form.Control
+                type="email"
+                placeholder="Enter your email"
+                value={isSignUp ? signupEmail : loginEmail}
+                onChange={(e) =>
+                  isSignUp
+                    ? setSignupEmail(e.target.value)
+                    : setLoginEmail(e.target.value)
+                }
+                required
+              />
+            </Form.Group>
+            <Form.Group controlId="password" className="mt-3">
+              <Form.Label>Password</Form.Label>
+              <Form.Control
+                type="password"
+                placeholder="Enter your password"
+                value={isSignUp ? signupPassword : loginPassword}
+                onChange={(e) =>
+                  isSignUp
+                    ? setSignupPassword(e.target.value)
+                    : setLoginPassword(e.target.value)
+                }
+                required
+              />
+            </Form.Group>
+            <Button variant="primary" type="submit" className="mt-3">
+              {isSignUp ? "Sign Up" : "Login"}
+            </Button>
+            <Button
+              variant="secondary"
+              className="mt-3 ms-2"
+              onClick={toggleSignUp}
+            >
+              {isSignUp ? "Switch to Login" : "Switch to Sign Up"}
+            </Button>
+          </Form>
+          {error && (
+            <Alert variant="danger" className="mt-4">
+              {error}
+            </Alert>
+          )}
+        </div>
+      ) : (
+        <div>
+          <Button variant="danger" className="mt-4 mb-4" onClick={handleLogout}>
+            Logout
+          </Button>
+          <h1 className="my-4">Email Newsletter Generator</h1>
+          <Form onSubmit={handleSubmit}>
+            <Form.Group controlId="email">
+              <Form.Label>Email Address</Form.Label>
+              <Form.Control
+                type="email"
+                placeholder="Enter recipient email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </Form.Group>
+            <Form.Group controlId="subject" className="mt-3">
+              <Form.Label>Subject</Form.Label>
+              <Form.Control
+                type="text"
+                placeholder="Enter email subject"
+                value={subject}
+                onChange={(e) => setSubject(e.target.value)}
+                required
+              />
+            </Form.Group>
+            <Form.Group controlId="template" className="mt-3">
+              <Form.Label>Template</Form.Label>
+              <Form.Control
+                as="select"
+                value={template}
+                onChange={(e) => setTemplate(e.target.value)}
+                required
+              >
+                {templates.map((t) => (
+                  <option key={t.id} value={t.id}>
+                    {t.id.charAt(0).toUpperCase() + t.id.slice(1)}
+                  </option>
+                ))}
+              </Form.Control>
+            </Form.Group>
+            <Button
+              variant="primary"
+              type="button"
+              className="mt-3"
+              onClick={handlePreview}
+            >
+              Preview and Send
+            </Button>
+            <Button
+              variant="secondary"
+              className="mt-3 ms-2"
+              onClick={handleShowTemplateModal}
+            >
+              Manage Templates
+            </Button>
+          </Form>
 
-      {message && (
-        <Alert variant="success" className="mt-4">
-          {message}
-        </Alert>
-      )}
-      {error && (
-        <Alert variant="danger" className="mt-4">
-          {error}
-        </Alert>
+          {message && (
+            <Alert variant="success" className="mt-4">
+              {message}
+            </Alert>
+          )}
+          {error && (
+            <Alert variant="danger" className="mt-4">
+              {error}
+            </Alert>
+          )}
+        </div>
       )}
 
       <Modal show={showPreview} onHide={handleClosePreview}>
         <Modal.Header closeButton>
-          <Modal.Title>Email Preview</Modal.Title>
+          <Modal.Title>Preview Email</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <div dangerouslySetInnerHTML={{ __html: previewContent }} />
@@ -240,88 +324,23 @@ function App() {
           <Modal.Title>Manage Templates</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <Tabs defaultActiveKey="all" id="template-tabs" className="mb-3">
-            <Tab eventKey="all" title="All Templates">
-              <ListGroup>
-                {templates.map((t) => (
-                  <ListGroup.Item
-                    key={t.id}
-                    action
-                    onClick={() => handleShowEditModal(t.id)}
-                  >
-                    {t.id.charAt(0).toUpperCase() + t.id.slice(1)}
-                  </ListGroup.Item>
-                ))}
-              </ListGroup>
-            </Tab>
-            <Tab eventKey="categories" title="Categories">
-              <ListGroup>
-                {templateCategories.map((category) => (
-                  <ListGroup.Item key={category}>
-                    <strong>{category}</strong>
-                    <ListGroup>
-                      {templates
-                        .filter((t) => t.category === category)
-                        .map((t) => (
-                          <ListGroup.Item
-                            key={t.id}
-                            action
-                            onClick={() => handleShowEditModal(t.id)}
-                          >
-                            {t.id.charAt(0).toUpperCase() + t.id.slice(1)}
-                          </ListGroup.Item>
-                        ))}
-                    </ListGroup>
-                  </ListGroup.Item>
-                ))}
-              </ListGroup>
-            </Tab>
-          </Tabs>
-          <Form.Group className="mt-3">
-            <Form.Label>New Template Name</Form.Label>
-            <Form.Control
-              type="text"
-              placeholder="Enter template name"
-              value={newTemplateName}
-              onChange={(e) => setNewTemplateName(e.target.value)}
-            />
-          </Form.Group>
-          <Form.Group className="mt-3">
-            <Form.Label>New Template Category</Form.Label>
-            <Form.Control
-              as="select"
-              value={newTemplateCategory}
-              onChange={(e) => setNewTemplateCategory(e.target.value)}
-            >
-              <option value="">Select Category</option>
-              {templateCategories.map((cat) => (
-                <option key={cat} value={cat}>
-                  {cat}
-                </option>
-              ))}
-            </Form.Control>
-          </Form.Group>
-          <Form.Group className="mt-3">
-            <Form.Label>New Template Content</Form.Label>
-            <Editor
-              apiKey="bn1csqrawrknlxp3a5fh7v9b7oufk8nhl69mh5iix0ibtjsx"
-              value={editorContent}
-              init={{
-                height: 300,
-                menubar: false,
-                plugins: "link image code",
-                toolbar:
-                  "undo redo | bold italic | alignleft aligncenter alignright alignjustify | outdent indent | removeformat | help",
-              }}
-              onEditorChange={(content) => setEditorContent(content)}
-            />
-          </Form.Group>
+          <ListGroup>
+            {templates.map((template) => (
+              <ListGroup.Item
+                key={template.id}
+                action
+                onClick={() => handleTemplateClick(template)}
+              >
+                {template.id.charAt(0).toUpperCase() + template.id.slice(1)}
+              </ListGroup.Item>
+            ))}
+          </ListGroup>
           <Button
             variant="primary"
             className="mt-3"
-            onClick={handleAddTemplate}
+            onClick={() => setShowEditModal(true)}
           >
-            Add Template
+            Add/Edit Template
           </Button>
         </Modal.Body>
         <Modal.Footer>
@@ -333,32 +352,37 @@ function App() {
 
       <Modal show={showEditModal} onHide={handleCloseEditModal}>
         <Modal.Header closeButton>
-          <Modal.Title>Edit Template</Modal.Title>
+          <Modal.Title>
+            {selectedTemplate ? "Edit Template" : "Add New Template"}
+          </Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <Form.Group>
+          <Form.Group controlId="templateName">
             <Form.Label>Template Name</Form.Label>
             <Form.Control
               type="text"
+              placeholder="Enter template name"
               value={newTemplateName}
               onChange={(e) => setNewTemplateName(e.target.value)}
+              required
             />
           </Form.Group>
-          <Form.Group className="mt-3">
+          <Form.Group controlId="templateCategory" className="mt-3">
             <Form.Label>Template Category</Form.Label>
             <Form.Control
               as="select"
               value={newTemplateCategory}
               onChange={(e) => setNewTemplateCategory(e.target.value)}
+              required
             >
-              {templateCategories.map((cat) => (
-                <option key={cat} value={cat}>
-                  {cat}
+              {templateCategories.map((category) => (
+                <option key={category} value={category}>
+                  {category}
                 </option>
               ))}
             </Form.Control>
           </Form.Group>
-          <Form.Group className="mt-3">
+          <Form.Group controlId="templateContent" className="mt-3">
             <Form.Label>Template Content</Form.Label>
             <Editor
               apiKey="bn1csqrawrknlxp3a5fh7v9b7oufk8nhl69mh5iix0ibtjsx"
@@ -366,9 +390,15 @@ function App() {
               init={{
                 height: 300,
                 menubar: false,
-                plugins: "link image code",
+                plugins: [
+                  "advlist autolink lists link image charmap preview anchor",
+                  "searchreplace visualblocks code fullscreen",
+                  "insertdatetime media table paste code help wordcount",
+                ],
                 toolbar:
-                  "undo redo | bold italic | alignleft aligncenter alignright alignjustify | outdent indent | removeformat | help",
+                  "undo redo | formatselect | bold italic backcolor | \
+                  alignleft aligncenter alignright alignjustify | \
+                  bullist numlist outdent indent | removeformat | help",
               }}
               onEditorChange={(content) => setEditorContent(content)}
             />
@@ -378,8 +408,11 @@ function App() {
           <Button variant="secondary" onClick={handleCloseEditModal}>
             Close
           </Button>
-          <Button variant="primary" onClick={handleEditTemplate}>
-            Save Changes
+          <Button
+            variant="primary"
+            onClick={selectedTemplate ? handleEditTemplate : handleAddTemplate}
+          >
+            {selectedTemplate ? "Save Changes" : "Add Template"}
           </Button>
         </Modal.Footer>
       </Modal>

@@ -3,60 +3,40 @@ import "./App.css";
 
 function App() {
   const [email, setEmail] = useState("");
-  const [content, setContent] = useState("");
-  const [emailError, setEmailError] = useState("");
-  const [contentError, setContentError] = useState("");
-  const [responseMessage, setResponseMessage] = useState("");
-
-  const validateForm = () => {
-    let isValid = true;
-    if (!email || !/\S+@\S+\.\S+/.test(email)) {
-      setEmailError("Please enter a valid email address.");
-      isValid = false;
-    } else {
-      setEmailError("");
-    }
-    if (!content) {
-      setContentError("Content cannot be empty.");
-      isValid = false;
-    } else {
-      setContentError("");
-    }
-    return isValid;
-  };
+  const [subject, setSubject] = useState("");
+  const [template, setTemplate] = useState("default");
+  const [error, setError] = useState("");
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    if (validateForm()) {
-      try {
-        const response = await fetch("http://localhost:5000/send-email", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            email: email,
-            content: content,
-          }),
-        });
 
-        const result = await response.text();
-        if (response.ok) {
-          setResponseMessage("Newsletter sent successfully!");
-        } else {
-          setResponseMessage(`Error: ${result}`);
-        }
-      } catch (error) {
-        setResponseMessage("Error sending newsletter.");
-        console.error("Error:", error);
-      }
+    const response = await fetch("http://localhost:2525/send-email", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        email: email,
+        subject: subject,
+        template: template,
+      }),
+    });
+
+    const result = await response.json();
+
+    if (response.ok) {
+      alert("Email sent successfully!");
+      setError("");
+    } else {
+      setError(result.errors.map((err) => err.msg).join(", "));
     }
   };
 
   return (
-    <div className="App">
+    <div>
       <h1>Email Newsletter Generator</h1>
       <form onSubmit={handleSubmit}>
+        {error && <div style={{ color: "red" }}>{error}</div>}
         <div>
           <label>Email:</label>
           <input
@@ -65,19 +45,28 @@ function App() {
             onChange={(e) => setEmail(e.target.value)}
             required
           />
-          {emailError && <p className="error">{emailError}</p>}
         </div>
         <div>
-          <label>Content:</label>
-          <textarea
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
+          <label>Subject:</label>
+          <input
+            type="text"
+            value={subject}
+            onChange={(e) => setSubject(e.target.value)}
             required
           />
-          {contentError && <p className="error">{contentError}</p>}
         </div>
-        <button type="submit">Send Newsletter</button>
-        {responseMessage && <p className="response">{responseMessage}</p>}
+        <div>
+          <label>Template:</label>
+          <select
+            value={template}
+            onChange={(e) => setTemplate(e.target.value)}
+          >
+            <option value="welcome">Welcome</option>
+            <option value="promotion">Promotion</option>
+            <option value="default">Default</option>
+          </select>
+        </div>
+        <button type="submit">Send Email</button>
       </form>
     </div>
   );

@@ -5,7 +5,7 @@ const cors = require("cors");
 const { check, validationResult } = require("express-validator");
 
 const app = express();
-const port = 2525;
+const port = 5000;
 
 app.use(cors());
 app.use(bodyParser.json());
@@ -47,9 +47,9 @@ app.post(
     }
 
     const mailOptions = {
-      from: "from@example.com",
+      from: "mitang@freelance.mailtrap.io",
       to: email,
-      subject: subject || "Default Subject",
+      subject: subject || "NewsLetter",
       html: content,
     };
 

@@ -9,3 +9,8 @@ There is also option to edit and add new templetes
 
 Once templete is selected and they can preview the message and then newsletter is send!
 ![image](https://github.com/user-attachments/assets/ba1f75c4-960f-4d0d-b78e-9ede96fab8a7)
+
+## Installation
+
+1: `Clone the Repository`
+2: `cd BreadcrumbsEmail-Newsletter-Generator-` 3. `npm install` 4. `npm start`

@@ -1,4 +1,10 @@
 # Email-Newsletter-Generator
+
+## Live Preview
+
+[Live Preview](https://email-newsletter-generator.vercel.app/)
+
+
 **Admins Can send newsletts by adding email address and subject
 **![image](https://github.com/user-attachments/assets/2e72b6c9-42fe-4907-b500-02143b1a0ebb)
 
